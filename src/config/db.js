@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { config } from "./envConfig.js";
 
 const connectDB = async () => {
   try {
@@ -7,10 +8,10 @@ const connectDB = async () => {
     });
 
     mongoose.connection.on("error", (error) => {
-      console.log("Error in connecting to database", error);
+      console.log("Error in connecting to database!!", error);
     });
 
-    await mongoose.connect("mongodb://localhost:27017/our-linkify");
+    await mongoose.connect(config.mongoURL);
   } catch (error) {
     console.log("Failed to connect DB!!", error);
     process.exit(1);
