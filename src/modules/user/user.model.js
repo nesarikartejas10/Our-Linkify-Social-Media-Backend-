@@ -31,6 +31,7 @@ const userSchema = new mongoose.Schema({
     enum: ["male", "female", "non-binary", "prefer not to say"],
   },
   phoneNumber: { type: String, trim: true },
+  refreshToken: { type: String },
 });
 
 export default mongoose.model("User", userSchema);

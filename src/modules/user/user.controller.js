@@ -1,4 +1,4 @@
-import { generateToken } from "../../utils/generateToken.js";
+import { generateTokens } from "../../utils/generateToken.js";
 import User from "./user.model.js";
 import bcrypt from "bcrypt";
 
@@ -35,9 +35,24 @@ export const registerUser = async (req, res) => {
 
   await newUser.save();
 
-  const token = generateToken({ _id: newUser._id, username: newUser.username });
+  const { accessToken, refreshToken } = generateTokens({
+    _id: newUser._id,
+    username: newUser.username,
+  });
 
-  res.status(201).json(token);
+  const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
+
+  newUser.refreshToken = hashedRefreshToken;
+  await newUser.save();
+
+  res.cookie("refreshToken", refreshToken, {
+    httpOnly: true,
+    secure: false,
+    sameSite: "none",
+    maxAge: 1000 * 60 * 60 * 24 * 30,
+  });
+
+  res.status(201).json(accessToken);
 };
 
 export const loginUser = async (req, res) => {
@@ -66,7 +81,22 @@ export const loginUser = async (req, res) => {
       .json({ message: "Invalid Credentials!!", success: false });
   }
 
-  const token = generateToken({ _id: user._id, username: user.username });
+  const { accessToken, refreshToken } = generateTokens({
+    _id: user._id,
+    username: user.username,
+  });
 
-  res.status(200).json(token);
+  const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
+
+  user.refreshToken = hashedRefreshToken;
+  await user.save();
+
+  res.cookie("refreshToken", refreshToken, {
+    httpOnly: true,
+    secure: false,
+    sameSite: "none",
+    maxAge: 1000 * 60 * 60 * 24 * 30,
+  });
+
+  res.status(200).json(accessToken);
 };
